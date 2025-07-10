@@ -1,11 +1,19 @@
 import requests
 import time
+import polars as pl
+import pandas as pd
+from io import StringIO
+
+
+HEADER_LINE = 0
+HEADER_TYPE_LINE = 1
 
 STATION_ID = "46088"
 URL = f"https://www.ndbc.noaa.gov/data/realtime2/{STATION_ID}.txt"
 
 session = requests.Session()
 last_mod = None
+
 
 while True:
     headers = {}
@@ -14,19 +22,22 @@ while True:
 
     resp = session.get(URL, headers=headers, timeout=30)
 
-    print(f"Response headers at {time.ctime()}:")
     for header_name, header_value in resp.headers.items():
         print(f"  {header_name}: {header_value}")
-    print()
 
-    if resp.status_code == 304:
-        print("No change since", last_mod)
-    elif resp.status_code == 200:
+    with open("resp.txt", "w") as f:
+        f.write(resp.text)
+
+    if resp.status_code == 200:
         last_mod = resp.headers.get("Last-Modified")
-        lines = resp.text.splitlines()
 
-        for line in lines[:2]:
-            print(line)
+        pdf = pd.read_fwf(StringIO(resp.text), comment="#")
+        df = pl.from_pandas(pdf)
+
+        print(df.dtypes)
+        print(f"Shape: {df.shape}")
+        print(df.head())
+
     else:
         resp.raise_for_status()
 
