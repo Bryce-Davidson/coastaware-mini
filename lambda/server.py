@@ -4,7 +4,6 @@ import datetime
 import os
 import boto3
 import psycopg2
-from psycopg2 import pool
 import time
 import logging
 
