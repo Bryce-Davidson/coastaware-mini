@@ -30,9 +30,8 @@ while True:
             if not line:
                 continue
 
-            # Capture header lines (they start with #)
             if line.startswith("#"):
-                header_lines.append(line[1:].strip())  # Remove # and strip whitespace
+                header_lines.append(line[1:].strip())
                 continue
 
             parts = line.split()
@@ -52,7 +51,6 @@ while True:
 
             csv_file = f"./data/stations/{STATION_ID}.csv"
 
-            # Check if we need to write header
             write_header = not header_written and (
                 not os.path.exists(csv_file) or os.path.getsize(csv_file) == 0
             )
@@ -60,12 +58,9 @@ while True:
             with open(csv_file, "a", newline="") as f:
                 writer = csv.writer(f)
 
-                # Write header if needed
                 if write_header and header_lines:
-                    # Write the column names from the first header line
-                    if header_lines:
-                        writer.writerow(header_lines[0].split())
-                        header_written = True
+                    writer.writerow(header_lines[0].split())
+                    header_written = True
 
                 for line in lines:
                     data = line.split()[DATA_RANGE]
@@ -82,4 +77,4 @@ while True:
         print(f"Unexpected status {resp.status_code}")
         break
 
-    time.sleep(30)
+    time.sleep(30 * 60)
