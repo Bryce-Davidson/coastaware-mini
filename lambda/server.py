@@ -27,8 +27,7 @@ if not all([TABLE_NAME, DB_HOST, DB_NAME, DB_USER, DB_PASSWORD]):
 
 URL = f"https://www.ndbc.noaa.gov/data/realtime2/{STATION_ID}.txt"
 
-# Connection pool
-connection_pool = None
+RDS_connection_pool = None
 
 # ------------------------------------------------------------
 
@@ -58,9 +57,9 @@ DB_COLUMNS = [col[1] for col in NOAA_COLUMNS]
 
 
 def get_connection_pool():
-    global connection_pool
-    if not connection_pool or connection_pool.closed:
-        connection_pool = psycopg2.pool.SimpleConnectionPool(
+    global RDS_connection_pool
+    if not RDS_connection_pool or RDS_connection_pool.closed:
+        RDS_connection_pool = psycopg2.pool.SimpleConnectionPool(
             1,
             3,
             host=DB_HOST,
@@ -69,7 +68,7 @@ def get_connection_pool():
             password=DB_PASSWORD,
             connect_timeout=5,
         )
-    return connection_pool
+    return RDS_connection_pool
 
 
 def get_db_connection(retries=3):
@@ -85,8 +84,8 @@ def get_db_connection(retries=3):
 
 
 def return_connection(conn):
-    if conn and connection_pool and not connection_pool.closed:
-        connection_pool.putconn(conn)
+    if conn and RDS_connection_pool and not RDS_connection_pool.closed:
+        RDS_connection_pool.putconn(conn)
 
 
 def ensure_table_exists():
@@ -394,5 +393,5 @@ def handler(event, context):
             ),
         }
     finally:
-        if connection_pool and not connection_pool.closed:
-            connection_pool.closeall()
+        if RDS_connection_pool and not RDS_connection_pool.closed:
+            RDS_connection_pool.closeall()
